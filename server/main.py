@@ -100,7 +100,7 @@ class PyMMO:
 if __name__ == "__main__":
     HOST = "26.6.61.19"
     server = PyMMO()
-    print(f"Game Server {server.__class__.__name__} was started at TCP {HOST}:{9000} and UDP {HOST}:{9001}.")
+    print(f"Game Server {server.__class__.__name__} was started at TCP {server.tcp_address[0]}:{server.tcp_address[1]} and UDP {server.udp_address[0]}:{server.udp_address[1]}.")
     tcp_thread = threading.Thread(target=server.tcp_server.serve_forever, args=(2,))
     tcp_thread.daemon = True
     tcp_thread.start()

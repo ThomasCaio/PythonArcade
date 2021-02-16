@@ -31,7 +31,7 @@ class GameView(arcade.View):
     def __init__(self):
         super(GameView, self).__init__()
         self.FPScounter = 0
-        self.FPS = 1
+        self.FPS = 0
         self.start = timeit.default_timer()
         self.objects = []
         self.gamestate = None
@@ -77,7 +77,7 @@ class GameView(arcade.View):
         if symbol == arcade.key.D:
             self.RIGHT_PRESSED = False
 
-    def on_update(self, delta_time: float = 1/60):
+    def on_update(self, delta_time: float = 1/60000000):
         if self.UP_PRESSED:
             self.window.network.udp_send({'event': arcade.key.W})
         if self.LEFT_PRESSED:
