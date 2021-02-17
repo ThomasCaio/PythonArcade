@@ -1,9 +1,9 @@
 import socket
 import json
-import timeit
+import time
 
 HOST = '26.6.61.19'
-BUFFER = 1024*1
+BUFFER = 1024*8
 
 
 class Network:
@@ -18,27 +18,25 @@ class Network:
 
         self.window = window
         self.window.network = self
-        self.sleep_time = timeit.default_timer()
-        self.sleep_interval = 0.000001
+        self.sleep_interval = 0.0001
 
     def action(self):
         if not self.uuid:
             self.uuid = self.tcp_send({'action': 'register', 'hostname': socket.gethostname()})['uuid']
         while True:
-            if timeit.default_timer() - self.sleep_interval > self.sleep_time:
-                if self.window:
-                    request = self.udp_send({'action': 'get', 'param': 'gamestate'})
-                    if request:
-                        self.window.current_view.gamestate = request['gamestate']
-                        self.window.current_view.highscores = request['highscores']
-                self.sleep_time = timeit.default_timer()
+            if self.window:
+                request = self.udp_send({'action': 'get', 'param': 'gamestate'})
+                if request:
+                    self.window.current_view.gamestate = request['gamestate']
+                    self.window.current_view.highscores = request['highscores']
+            time.sleep(self.sleep_interval)
 
     def tcp_send(self, message):
         if self.uuid:
             message['uuid'] = self.uuid
         try:
             self.tcp_sock.sendall(json.dumps(message).encode())
-            received = self.tcp_sock.recv(BUFFER)
+            received = self.tcp_sock.recv(1024)
             received = json.loads(received)
             return received
         except ConnectionResetError as error:
@@ -50,7 +48,7 @@ class Network:
         try:
             if message:
                 self.udp_sock.sendto(json.dumps(message).encode(), self.udp_address)
-                raw_data = self.udp_sock.recv(1024*5)
+                raw_data = self.udp_sock.recv(BUFFER)
                 if raw_data:
                     received = json.loads(raw_data)
                     return received

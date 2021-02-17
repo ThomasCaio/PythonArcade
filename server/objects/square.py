@@ -12,6 +12,11 @@ class Square:
         self.width = config.SQUARE_SIZE
         self.height = config.SQUARE_SIZE
 
+        self.UP_PRESSED = False
+        self.LEFT_PRESSED = False
+        self.DOWN_PRESSED = False
+        self.RIGHT_PRESSED = False
+
     def set_position(self, x, y):
         self.position = x, y
 

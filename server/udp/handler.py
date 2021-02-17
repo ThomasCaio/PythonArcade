@@ -19,7 +19,6 @@ class UDPHandler(socketserver.BaseRequestHandler):
                     message['gamestate'] = self.server.parent.gamemode.gamestate.state()
                     message['highscores'] = self.server.parent.gamemode.gamestate.highscores()
         if 'event' in data:
-            print(data)
             self.key_handler(data)
         return message
 

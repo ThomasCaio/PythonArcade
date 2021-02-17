@@ -1,4 +1,5 @@
 import timeit
+import time
 import random
 import threading
 from arcade import key, color
@@ -12,7 +13,7 @@ from server.udp.server import UDPServer
 from server.udp.handler import UDPHandler
 
 
-MOVE_SPEED = 2
+MOVE_SPEED = 1
 
 
 class GameMode:
@@ -25,17 +26,34 @@ class GameMode:
         self.spawn_time = 3
         self.last_spawn = timeit.default_timer()
 
+    def update(self):
+        x, y = 0, 0
+        for o in self.objects:
+            if o.UP_PRESSED:
+                y = MOVE_SPEED
+            if o.LEFT_PRESSED:
+                x = -MOVE_SPEED
+            if o.DOWN_PRESSED:
+                y = -MOVE_SPEED
+            if o.RIGHT_PRESSED:
+                x = MOVE_SPEED
+            self.move_player(o, x, y)
+            x, y = 0, 0
+
     def event_handler(self, event):
         player = self.get_player(event['uuid'])
 
-        if event['event'] == key.W:
-            self.move_player(player, 0, MOVE_SPEED)
-        if event['event'] == key.A:
-            self.move_player(player, -MOVE_SPEED, 0)
-        if event['event'] == key.S:
-            self.move_player(player, 0, -MOVE_SPEED)
-        if event['event'] == key.D:
-            self.move_player(player, MOVE_SPEED, 0)
+        if event['key'] == key.W:
+            player.UP_PRESSED = event['event']
+
+        if event['key'] == key.A:
+            player.LEFT_PRESSED = event['event']
+
+        if event['key'] == key.S:
+            player.DOWN_PRESSED = event['event']
+
+        if event['key'] == key.D:
+            player.RIGHT_PRESSED = event['event']
 
     def check_collision(self, player):
         for a in self.apples:
@@ -47,10 +65,12 @@ class GameMode:
                 self.apples.remove(a)
 
     def move_player(self, player, x, y):
-        if (config.MAP_WIDTH - (config.SQUARE_SIZE // 2)) >= player.position[0]+x >= 0 + (config.SQUARE_SIZE // 2)\
-                and (config.MAP_HEIGHT - (config.SQUARE_SIZE // 2)) >= player.position[1]+y >= 0 + (config.SQUARE_SIZE // 2):
-            player.set_position(player.position[0]+x, player.position[1]+y)
-        self.check_collision(player)
+        if x or y:
+            if (config.MAP_WIDTH - (config.SQUARE_SIZE // 2)) >= player.position[0]+x >= 0 + (config.SQUARE_SIZE // 2)\
+                    and (config.MAP_HEIGHT - (config.SQUARE_SIZE // 2)) >= player.position[1]+y >= 0 + (config.SQUARE_SIZE // 2):
+                player.set_position(player.position[0]+x, player.position[1]+y)
+
+            self.check_collision(player)
 
     def get_player(self, id):
         for o in self.objects:
@@ -96,15 +116,28 @@ class PyMMO:
         self.udp_address = (HOST, 9001)
         self.udp_server = UDPServer(self, self.udp_address, UDPHandler)
 
+        self.action_interval = 1/100
+
+    def serve_forever(self):
+        while True:
+            self.action()
+            time.sleep(self.action_interval)
+
+    def action(self):
+        self.gamemode.update()
+
 
 if __name__ == "__main__":
     HOST = "26.6.61.19"
     server = PyMMO()
     print(f"Game Server {server.__class__.__name__} was started at TCP {server.tcp_address[0]}:{server.tcp_address[1]} and UDP {server.udp_address[0]}:{server.udp_address[1]}.")
-    tcp_thread = threading.Thread(target=server.tcp_server.serve_forever, args=(2,))
+    tcp_thread = threading.Thread(target=server.tcp_server.serve_forever, args=(0.1,))
     tcp_thread.daemon = True
     tcp_thread.start()
-    udp_thread = threading.Thread(target=server.udp_server.serve_forever, args=(2,))
+    udp_thread = threading.Thread(target=server.udp_server.serve_forever, args=(0.1,))
     udp_thread.daemon = True
     udp_thread.start()
-    udp_thread.run()
+    server_action = threading.Thread(target=server.serve_forever)
+    server_action.daemon = True
+    server_action.start()
+    server_action.run()
