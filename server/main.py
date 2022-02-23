@@ -107,7 +107,7 @@ class GameState:
         return sorted(highscores, key=lambda x: x[1], reverse=True)
 
 
-class PyMMO:
+class GameServer:
     def __init__(self):
         self.gamemode = GameMode(self)
 
@@ -128,8 +128,8 @@ class PyMMO:
 
 
 if __name__ == "__main__":
-    HOST = "26.6.61.19"
-    server = PyMMO()
+    HOST = "127.0.0.1"
+    server = GameServer()
     print(f"Game Server {server.__class__.__name__} was started at TCP {server.tcp_address[0]}:{server.tcp_address[1]} and UDP {server.udp_address[0]}:{server.udp_address[1]}.")
     tcp_thread = threading.Thread(target=server.tcp_server.serve_forever, args=(0.1,))
     tcp_thread.daemon = True
