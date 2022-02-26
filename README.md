@@ -1,3 +1,3 @@
 # PyArcade
 
-Projeto criado para entender o funcionamento de comunicação através de sockets(TCP e UDP).
+Projeto criado para entender o funcionamento da comunicação através de sockets(TCP e UDP).
